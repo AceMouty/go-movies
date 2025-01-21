@@ -37,10 +37,10 @@ type MoviesGenre struct {
 
 type User struct {
 	ID        int32
-	FirstName sql.NullString
-	LastName  sql.NullString
-	Email     sql.NullString
-	Password  sql.NullString
+	FirstName string
+	LastName  string
+	Email     string
+	Password  string
 	CreatedAt sql.NullTime
 	UpdatedAt sql.NullTime
 }

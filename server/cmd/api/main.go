@@ -6,9 +6,10 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/acemouty/go-movie/internal/database"
+	"github.com/go-chi/chi/v5"
 	_ "github.com/lib/pq"
 )
 
@@ -18,6 +19,11 @@ type application struct {
   mux *chi.Mux
   db *database.Queries
   domain string
+  auth Auth
+  JwtSecret string
+  JwtIssueer string
+  JwtAudience string
+  CookieDomain string
 }
 
 func main() {
@@ -32,11 +38,30 @@ func main() {
   // take in db conn string
   var dbConn string
   flag.StringVar(&dbConn, "dbConn", "postgres://postgres:postgres@localhost:5432/gomovies?sslmode=disable", "Postgres Conection String")
+
+  flag.StringVar(&app.JwtSecret, "jwt-secret" ,"keep-it-secret-keep-it-safe", "signing secret")
+  flag.StringVar(&app.JwtIssueer, "jwt-issuer" ,app.domain, "signing issuer")
+  flag.StringVar(&app.JwtAudience, "jwt-audience" ,app.domain, "signing audience")
+  flag.StringVar(&app.CookieDomain, "cookie-domain" ,"localhost", "cookie domain")
+  flag.Parse()
+
+  // compose app config
+
+  // connect to the db
   db := dbConnect(dbConn)
   dbQueries := database.New(db)
   app.db = dbQueries
 
-  // connect to the db
+  app.auth = Auth {
+    Issuer: app.JwtIssueer,
+    Audiance: app.JwtAudience,
+    Secret: app.JwtSecret,
+    TokenExpiry: time.Minute * 15, // 15 minute life (access token)
+    RefreshExpiry: time.Hour * 24, // 1 day life (refresh token)
+    CookiePath: "/",
+    CookieName: "__Host-refresh_token",
+    CookieDomain: app.CookieDomain,
+  }
 
   // startup application
   log.Println("starting application on port:", port)

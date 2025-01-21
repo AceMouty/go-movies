@@ -29,11 +29,11 @@ CREATE TABLE public.movies_genres (
 );
 
 CREATE TABLE public.users (
-    id integer NOT NULL PRIMARY KEY,
-    first_name character varying(255),
-    last_name character varying(255),
-    email character varying(255),
-    password character varying(255),
+    id integer PRIMARY KEY NOT NULL,
+    first_name varchar(255) NOT NULL,
+    last_name varchar(255) NOT NULL ,
+    email varchar(255) NOT NULL UNIQUE,
+    password varchar(255) NOT NULL,
     created_at timestamp without time zone,
     updated_at timestamp without time zone
 );
