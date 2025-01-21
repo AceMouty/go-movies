@@ -6,12 +6,12 @@ import (
 
 func (a *application) mapRoutes() {
 
-  // middleware...
-  a.mux.Use(middleware.Recoverer) // recover from a panic and return a 500 internal server error
-  a.mux.Use(enableCORS)
+	// middleware...
+	a.mux.Use(middleware.Recoverer) // recover from a panic and return a 500 internal server error
+	a.mux.Use(enableCORS)
 
-  // map routes... 
-  a.mux.Get("/", a.handlerLiveCheck)
-  a.mux.Get("/api/movies", a.handlerGetMovies)
-  a.mux.Get("/api/login", a.handlerLogin)
+	// map routes...
+	a.mux.Get("/", a.handlerLiveCheck)
+	a.mux.Get("/api/movies", a.handlerGetMovies)
+	a.mux.Post("/api/login", a.handlerLogin)
 }

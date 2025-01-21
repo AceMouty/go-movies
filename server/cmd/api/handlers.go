@@ -57,7 +57,7 @@ func (a *application) handlerLogin(w http.ResponseWriter, r *http.Request) {
 	// read JSON page
 	var loginRequest struct {
 		Email    string `json:"email"`
-		Password string `json:"pssword"`
+		Password string `json:"password"`
 	}
 
 	if err := a.readJson(w, r, &loginRequest); err != nil {
