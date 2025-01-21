@@ -13,5 +13,6 @@ func (a *application) mapRoutes() {
 	// map routes...
 	a.mux.Get("/", a.handlerLiveCheck)
 	a.mux.Get("/api/movies", a.handlerGetMovies)
-	a.mux.Post("/api/login", a.handlerLogin)
+	a.mux.Post("/api/auth/login", a.handlerLogin)
+	a.mux.Get("/api/auth/refresh", a.handlerRefreshToken)
 }

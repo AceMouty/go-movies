@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 
+	"github.com/golang-jwt/jwt/v4"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -95,4 +97,54 @@ func (a *application) handlerLogin(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, refreshCookie)
 	// w.Write([]byte(tokens.Token))
 	a.writeJson(w, http.StatusAccepted, tokens)
+}
+
+func (a *application) handlerRefreshToken(w http.ResponseWriter, r *http.Request) {
+	for _, cookie := range r.Cookies() {
+		// cycle until we find our auth cookie
+		if cookie.Name != a.auth.CookieName {
+			continue
+		}
+
+		claims := &Claims{}
+		refreshToken := cookie.Value
+
+		// parse token and get the claims
+		_, err := jwt.ParseWithClaims(refreshToken, claims, func(token *jwt.Token) (interface{}, error) {
+			return []byte(a.JwtSecret), nil
+		})
+		if err != nil {
+			a.errorJson(w, errors.New("unauthorized"), http.StatusUnauthorized)
+			return
+		}
+
+		// get the user id from the token's claims
+		userID, err := strconv.Atoi(claims.Subject)
+		if err != nil {
+			a.errorJson(w, errors.New("unkown user"), http.StatusUnauthorized)
+		}
+
+		dbUser, err := a.db.GetUserById(context.Background(), int32(userID))
+		if err != nil {
+			log.Println("HandlerRefreshToken:", err)
+			a.errorJson(w, errors.New("unkown user"))
+		}
+
+		jwtUser := jwtUser{ID: int(dbUser.ID), FirstName: dbUser.FirstName, LastName: dbUser.LastName}
+
+		tokenPairs, err := a.auth.GenerateTokenPair(&jwtUser)
+		if err != nil {
+			a.errorJson(w, errors.New("unable to create tokens"), http.StatusUnauthorized)
+			return
+		}
+
+		http.SetCookie(w, a.auth.GetRefreshCookie(tokenPairs.RefreshToken))
+
+		a.writeJson(w, http.StatusOK, tokenPairs)
+	}
+}
+
+func (a *application) handlerLogout(w http.ResponseWriter, r *http.Request) {
+	http.SetCookie(w, a.auth.GetExpiredRefreshCookie())
+	w.WriteHeader(http.StatusAccepted)
 }
